@@ -31,7 +31,7 @@ private:
     Font font;
     Font titleFont;
     std::mt19937 rng;
-    
+
     // Keyboard navigation variables
     int selectedMenuItem = 0;  // For menu navigation
     int selectedColorIndex = 0;  // For color selection in game
@@ -50,7 +50,7 @@ private:
     void floodFill(int x, int y, int oldColor, int newColor) {
         if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
         if (board[y][x] != oldColor || oldColor == newColor) return;
-        
+
         board[y][x] = newColor;
         floodFill(x + 1, y, oldColor, newColor);
         floodFill(x - 1, y, oldColor, newColor);
@@ -77,14 +77,25 @@ private:
         onRestartButton = false;
     }
 
+    // Helper: draw text centered horizontally using a specific font
+    void DrawTextCentered(const Font &f, const char* text, float y, float fontSize, float spacing, Color color) {
+        Vector2 sz = MeasureTextEx(f, text, fontSize, spacing);
+        Vector2 pos = { (float)GetScreenWidth() / 2.0f - sz.x / 2.0f, y };
+        DrawTextEx(f, text, pos, fontSize, spacing, color);
+    }
+
 public:
     FloodGame() : rng(std::random_device{}()) {
         initBoard();
     }
 
     void LoadResources() {
+        // Prefer LoadFontEx if you want to set glyph size, but LoadFont works for most cases
         font = LoadFont("assets/fonts/monogram.ttf");
-        if (font.texture.id == 0) font = GetFontDefault();
+        if (font.texture.id == 0) {
+            // Fallback to default font
+            font = GetFontDefault();
+        }
         titleFont = font; // Using same font for simplicity
     }
 
@@ -128,7 +139,7 @@ public:
         } else if (IsKeyPressed(KEY_DOWN)) {
             selectedMenuItem = (selectedMenuItem + 1) % 2;
         }
-        
+
         // Select menu item with Enter
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedMenuItem == 0) {
@@ -209,32 +220,35 @@ public:
     }
 
     void DrawMenu() {
-        DrawText("TINY FLOOD", GetScreenWidth() / 2 - 120, 100, 40, GAME_COLORS[1]);
-        
+        // Title (centered)
+        DrawTextCentered(titleFont, "TINY FLOOD", 100.0f, 40.0f, 1.0f, GAME_COLORS[1]);
+
         // Draw menu items with selection highlight
         Color startColor = (selectedMenuItem == 0) ? GAME_COLORS[1] : GAME_COLORS[0];
         Color instructionsColor = (selectedMenuItem == 1) ? GAME_COLORS[1] : GAME_COLORS[0];
-        
-        DrawText("Start", GetScreenWidth() / 2 - 30, 300, 20, startColor);
-        DrawText("Instructions", GetScreenWidth() / 2 - 60, 350, 20, instructionsColor);
-        
+
+        DrawTextEx(font, "Start", { (float)GetScreenWidth()/2 - 30, 300.0f }, 20.0f, 1.0f, startColor);
+        DrawTextEx(font, "Instructions", { (float)GetScreenWidth()/2 - 60, 350.0f }, 20.0f, 1.0f, instructionsColor);
+
         // Draw selection indicator
         int indicatorY = selectedMenuItem == 0 ? 300 : 350;
-        DrawText(">", GetScreenWidth() / 2 - 80, indicatorY, 20, GAME_COLORS[1]);
-        
+        DrawTextEx(font, ">", { (float)GetScreenWidth()/2 - 80, (float)indicatorY }, 20.0f, 1.0f, GAME_COLORS[1]);
+
         // Draw controls hint
-        DrawText("Use UP/DOWN arrows and ENTER to navigate", GetScreenWidth() / 2 - 180, 450, 14, GRAY);
+        DrawTextEx(font, "Use UP/DOWN arrows and ENTER to navigate", { (float)GetScreenWidth()/2 - 180, 450.0f }, 14.0f, 1.0f, GRAY);
     }
 
     void DrawInstructions() {
-        DrawText("Instructions", PADDING, 100, 30, GAME_COLORS[1]);
-        DrawText("Use LEFT/RIGHT arrows to select colors", PADDING, 150, 16, GAME_COLORS[0]);
-        DrawText("Press ENTER to flood with selected color", PADDING, 180, 16, GAME_COLORS[0]);
-        DrawText("Use UP/DOWN to switch between colors and restart", PADDING, 210, 16, GAME_COLORS[0]);
-        DrawText("Fill entire board with one color in few moves", PADDING, 240, 16, GAME_COLORS[0]);
-        DrawText("Press ESC to return to menu", PADDING, 270, 16, GAME_COLORS[0]);
-        
-        DrawText("Press ENTER to return to menu", GetScreenWidth() / 2 - 120, GetScreenHeight() - 50, 16, GAME_COLORS[1]);
+        DrawTextEx(font, "Instructions", { (float)PADDING, 100.0f }, 30.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextEx(font, "Use LEFT/RIGHT arrows to select colors", { (float)PADDING, 150.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Press ENTER to flood with selected color", { (float)PADDING, 180.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Use UP/DOWN to switch between colors and restart", { (float)PADDING, 210.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Fill entire board with one color in few moves", { (float)PADDING, 240.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Press ESC to return to menu", { (float)PADDING, 270.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+
+        const char* hint = "Press ENTER to return to menu";
+        Vector2 hintSz = MeasureTextEx(font, hint, 16.0f, 1.0f);
+        DrawTextEx(font, hint, { (float)GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() - 50.0f }, 16.0f, 1.0f, GAME_COLORS[1]);
     }
 
     void DrawGame() {
@@ -253,18 +267,18 @@ public:
 
         // Draw move counter
         std::string moveText = "Moves: " + std::to_string(moves) + "/" + std::to_string(MAX_MOVES);
-        DrawText(moveText.c_str(), PADDING, PADDING * 0.2, 20, GAME_COLORS[0]);
+        DrawTextEx(font, moveText.c_str(), { (float)PADDING, (float)(PADDING * 0.2) }, 20.0f, 1.0f, GAME_COLORS[0]);
 
         // Draw color buttons with selection highlight
         int buttonY = PADDING + BOARD_SIZE * CELL_SIZE + 10;
         for (int i = 0; i < NUM_COLORS; i++) {
             Rectangle button = {(float)(PADDING + i * 30), (float)buttonY, 25.0f, 25.0f};
             DrawRectangleRounded(button, 0.2f, 0, GAME_COLORS[i]);
-            
+
             // Draw selection indicator for selected color
             if (!onRestartButton && i == selectedColorIndex) {
                 DrawRectangleLinesEx(button, 3.0f, WHITE);
-                DrawText("^", PADDING + i * 30 + 10, buttonY - 20, 16, WHITE);
+                DrawTextEx(font, "^", { PADDING + i * 30 + 10.0f, (float)buttonY - 20.0f }, 16.0f, 1.0f, WHITE);
             }
         }
 
@@ -272,35 +286,35 @@ public:
         Rectangle restartBtn = {(float)PADDING, (float)(buttonY + 35), 100.0f, 30.0f};
         Color restartColor = onRestartButton ? GAME_COLORS[1] : LIGHTGRAY;
         DrawRectangleRounded(restartBtn, 0.2f, 0, restartColor);
-        DrawText("Restart", PADDING + 25, buttonY + 42, 16, onRestartButton ? WHITE : BLACK);
-        
+        DrawTextEx(font, "Restart", { PADDING + 25.0f, (float)buttonY + 42.0f }, 16.0f, 1.0f, onRestartButton ? WHITE : BLACK);
+
         if (onRestartButton) {
-            DrawText(">", PADDING - 20, buttonY + 42, 16, GAME_COLORS[1]);
+            DrawTextEx(font, ">", { (float)PADDING - 20.0f, (float)buttonY + 42.0f }, 16.0f, 1.0f, GAME_COLORS[1]);
         }
 
         // Draw controls hint
         if (!gameOver && !win) {
-            DrawText("LEFT/RIGHT: Select color", PADDING, buttonY + 75, 12, GRAY);
-            DrawText("UP/DOWN: Switch focus", PADDING, buttonY + 90, 12, GRAY);
-            DrawText("ENTER: Confirm", PADDING, buttonY + 105, 12, GRAY);
+            DrawTextEx(font, "LEFT/RIGHT: Select color", { (float)PADDING, (float)buttonY + 75.0f }, 12.0f, 1.0f, GRAY);
+            DrawTextEx(font, "UP/DOWN: Switch focus", { (float)PADDING, (float)buttonY + 90.0f }, 12.0f, 1.0f, GRAY);
+            DrawTextEx(font, "ENTER: Confirm", { (float)PADDING, (float)buttonY + 105.0f }, 12.0f, 1.0f, GRAY);
         }
 
         // Draw win/game over message
         if (win || gameOver) {
-            DrawRectangle(0, GetScreenHeight() / 2 - 50, GetScreenWidth(), 100, 
+            DrawRectangle(0, GetScreenHeight() / 2 - 50, GetScreenWidth(), 100,
                          win ? Color{0, 128, 0, 200} : Color{128, 0, 0, 200});
             const char* message = win ? "You Win!" : "Game Over!";
-            int textWidth = MeasureText(message, 30);
-            DrawText(message, GetScreenWidth() / 2 - textWidth / 2, GetScreenHeight() / 2 - 25, 30, WHITE);
-            
+            Vector2 msz = MeasureTextEx(titleFont, message, 30.0f, 1.0f);
+            DrawTextEx(titleFont, message, { GetScreenWidth() / 2.0f - msz.x / 2.0f, (float)GetScreenHeight() / 2 - 25.0f }, 30.0f, 1.0f, WHITE);
+
             const char* restartHint = "Press ENTER to restart";
-            int hintWidth = MeasureText(restartHint, 16);
-            DrawText(restartHint, GetScreenWidth() / 2 - hintWidth / 2, GetScreenHeight() / 2 + 10, 16, WHITE);
+            Vector2 hintSz = MeasureTextEx(font, restartHint, 16.0f, 1.0f);
+            DrawTextEx(font, restartHint, { GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() / 2 + 10.0f }, 16.0f, 1.0f, WHITE);
         }
     }
 
     void Cleanup() {
-        if (font.texture.id != GetFontDefault().texture.id) {
+        if (font.texture.id != GetFontDefault().texture.id && font.texture.id != 0) {
             UnloadFont(font);
         }
     }
@@ -308,11 +322,11 @@ public:
 
 int main() {
     InitWindow(WINDOW_SIZE, WINDOW_SIZE + 100, "Tiny Flood");
-    
+
     // Load and set window icon
     Image icon = LoadImage("assets/icon.png");  // Use PNG instead of ICO for better compatibility
     SetWindowIcon(icon);
-    UnloadImage(icon);    
+    UnloadImage(icon);
     SetTargetFPS(60);
 
     FloodGame game;
