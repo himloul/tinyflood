@@ -5,8 +5,8 @@
 
 // Configuration
 const int BOARD_SIZE = 12;
-const int CELL_SIZE = 30;
-const int PADDING = 40;
+const int CELL_SIZE = 35;
+const int PADDING = 50;
 const int MAX_MOVES = 15;
 const int WINDOW_SIZE = BOARD_SIZE * CELL_SIZE + PADDING * 2;
 
@@ -221,34 +221,40 @@ public:
 
     void DrawMenu() {
         // Title (centered)
-        DrawTextCentered(titleFont, "TINY FLOOD", 100.0f, 40.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextCentered(titleFont, "TINY FLOOD", 100.0f, 60.0f, 1.0f, GAME_COLORS[1]);
 
         // Draw menu items with selection highlight
         Color startColor = (selectedMenuItem == 0) ? GAME_COLORS[1] : GAME_COLORS[0];
         Color instructionsColor = (selectedMenuItem == 1) ? GAME_COLORS[1] : GAME_COLORS[0];
 
-        DrawTextEx(font, "Start", { (float)GetScreenWidth()/2 - 30, 300.0f }, 20.0f, 1.0f, startColor);
-        DrawTextEx(font, "Instructions", { (float)GetScreenWidth()/2 - 60, 350.0f }, 20.0f, 1.0f, instructionsColor);
+        DrawTextEx(font, "Start", { (float)GetScreenWidth()/2 - 80, 300.0f }, 30.0f, 1.0f, startColor);
+        DrawTextEx(font, "Instructions", { (float)GetScreenWidth()/2 - 80, 350.0f }, 30.0f, 1.0f, instructionsColor);
 
         // Draw selection indicator
         int indicatorY = selectedMenuItem == 0 ? 300 : 350;
-        DrawTextEx(font, ">", { (float)GetScreenWidth()/2 - 80, (float)indicatorY }, 20.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextEx(font, ">", { (float)GetScreenWidth()/2 - 100, (float)indicatorY }, 30.0f, 1.0f, GAME_COLORS[1]);
 
         // Draw controls hint
-        DrawTextEx(font, "Use UP/DOWN arrows and ENTER to navigate", { (float)GetScreenWidth()/2 - 180, 450.0f }, 14.0f, 1.0f, GRAY);
+        DrawTextCentered(font, "UP/DOWN to navigate", 450.0f, 20.0f, 1.0f, GRAY);
+        DrawTextCentered(font, "ENTER to select", 480.0f, 20.0f, 1.0f, GRAY);
+
     }
 
     void DrawInstructions() {
-        DrawTextEx(font, "Instructions", { (float)PADDING, 100.0f }, 30.0f, 1.0f, GAME_COLORS[1]);
-        DrawTextEx(font, "Use LEFT/RIGHT arrows to select colors", { (float)PADDING, 150.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "Press ENTER to flood with selected color", { (float)PADDING, 180.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "Use UP/DOWN to switch between colors and restart", { (float)PADDING, 210.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "Fill entire board with one color in few moves", { (float)PADDING, 240.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "Press ESC to return to menu", { (float)PADDING, 270.0f }, 16.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Instructions", { (float)PADDING, 100.0f }, 40.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextEx(font, "LEFT/RIGHT: Select colors", { (float)PADDING, 150.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "ENTER: Flood with selected color", { (float)PADDING, 180.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "UP/DOWN: Switch colors and restart", { (float)PADDING, 210.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "ESC: to return to menu", { (float)PADDING, 240.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+
+        DrawTextEx(font, "---", { (float)PADDING, 270.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Fill entire board w/ one color", { (float)PADDING, 300.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "in few moves", { (float)PADDING, 330.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+
 
         const char* hint = "Press ENTER to return to menu";
-        Vector2 hintSz = MeasureTextEx(font, hint, 16.0f, 1.0f);
-        DrawTextEx(font, hint, { (float)GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() - 50.0f }, 16.0f, 1.0f, GAME_COLORS[1]);
+        Vector2 hintSz = MeasureTextEx(font, hint, 22.0f, 1.0f);
+        DrawTextEx(font, hint, { (float)GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() - 50.0f }, 22.0f, 1.0f, GAME_COLORS[1]);
     }
 
     void DrawGame() {
@@ -267,49 +273,55 @@ public:
 
         // Draw move counter
         std::string moveText = "Moves: " + std::to_string(moves) + "/" + std::to_string(MAX_MOVES);
-        DrawTextEx(font, moveText.c_str(), { (float)PADDING, (float)(PADDING * 0.2) }, 20.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, moveText.c_str(), { (float)PADDING, (float)(PADDING * 0.2) }, 24.0f, 1.0f, GAME_COLORS[0]);
 
         // Draw color buttons with selection highlight
-        int buttonY = PADDING + BOARD_SIZE * CELL_SIZE + 10;
+        int buttonY = PADDING + BOARD_SIZE * CELL_SIZE + 20;
         for (int i = 0; i < NUM_COLORS; i++) {
-            Rectangle button = {(float)(PADDING + i * 30), (float)buttonY, 25.0f, 25.0f};
+            Rectangle button = {(float)(PADDING + i * 40), (float)buttonY, 35.0f, 35.0f};
             DrawRectangleRounded(button, 0.2f, 0, GAME_COLORS[i]);
 
             // Draw selection indicator for selected color
             if (!onRestartButton && i == selectedColorIndex) {
-                DrawRectangleLinesEx(button, 3.0f, WHITE);
-                DrawTextEx(font, "^", { PADDING + i * 30 + 10.0f, (float)buttonY - 20.0f }, 16.0f, 1.0f, WHITE);
+                DrawRectangleLinesEx(button, 4.0f, WHITE);
+                DrawTextEx(font, "^", { PADDING + i * 40 + 10.0f, (float)buttonY - 25.0f }, 20.0f, 1.0f, WHITE);
             }
         }
 
         // Draw restart button with selection highlight
-        Rectangle restartBtn = {(float)PADDING, (float)(buttonY + 35), 100.0f, 30.0f};
+        Rectangle restartBtn = {(float)PADDING, (float)(buttonY + 50), 120.0f, 40.0f};
         Color restartColor = onRestartButton ? GAME_COLORS[1] : LIGHTGRAY;
         DrawRectangleRounded(restartBtn, 0.2f, 0, restartColor);
-        DrawTextEx(font, "Restart", { PADDING + 25.0f, (float)buttonY + 42.0f }, 16.0f, 1.0f, onRestartButton ? WHITE : BLACK);
+        DrawTextEx(font, "Restart", { PADDING + 25.0f, (float)buttonY + 60.0f }, 20.0f, 1.0f, onRestartButton ? WHITE : BLACK);
 
         if (onRestartButton) {
-            DrawTextEx(font, ">", { (float)PADDING - 20.0f, (float)buttonY + 42.0f }, 16.0f, 1.0f, GAME_COLORS[1]);
+            DrawTextEx(font, ">", { (float)PADDING - 20.0f, (float)buttonY + 60.0f }, 20.0f, 1.0f, GAME_COLORS[1]);
         }
 
         // Draw controls hint
         if (!gameOver && !win) {
-            DrawTextEx(font, "LEFT/RIGHT: Select color", { (float)PADDING, (float)buttonY + 75.0f }, 12.0f, 1.0f, GRAY);
-            DrawTextEx(font, "UP/DOWN: Switch focus", { (float)PADDING, (float)buttonY + 90.0f }, 12.0f, 1.0f, GRAY);
-            DrawTextEx(font, "ENTER: Confirm", { (float)PADDING, (float)buttonY + 105.0f }, 12.0f, 1.0f, GRAY);
+            DrawTextEx(font, "LEFT/RIGHT: Select color", { (float)PADDING, (float)buttonY + 100.0f }, 16.0f, 1.0f, GRAY);
+            DrawTextEx(font, "UP/DOWN: Switch focus", { (float)PADDING, (float)buttonY + 120.0f }, 16.0f, 1.0f, GRAY);
+            DrawTextEx(font, "ENTER: Confirm", { (float)PADDING, (float)buttonY + 140.0f }, 16.0f, 1.0f, GRAY);
         }
 
         // Draw win/game over message
         if (win || gameOver) {
-            DrawRectangle(0, GetScreenHeight() / 2 - 50, GetScreenWidth(), 100,
-                         win ? Color{0, 128, 0, 200} : Color{128, 0, 0, 200});
-            const char* message = win ? "You Win!" : "Game Over!";
-            Vector2 msz = MeasureTextEx(titleFont, message, 30.0f, 1.0f);
-            DrawTextEx(titleFont, message, { GetScreenWidth() / 2.0f - msz.x / 2.0f, (float)GetScreenHeight() / 2 - 25.0f }, 30.0f, 1.0f, WHITE);
+            // Define the semi-transparent background rectangle area
+            Rectangle overlayRect = { 0, (float)GetScreenHeight() / 2 - 50, (float)GetScreenWidth(), 150 };
+            DrawRectangleRec(overlayRect, win ? Color{0, 128, 0, 200} : Color{128, 0, 0, 200});
 
-            const char* restartHint = "Press ENTER to restart";
-            Vector2 hintSz = MeasureTextEx(font, restartHint, 16.0f, 1.0f);
-            DrawTextEx(font, restartHint, { GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() / 2 + 10.0f }, 16.0f, 1.0f, WHITE);
+            // --- MODIFIED SECTION ---
+            // Use the DrawTextCentered helper for the main message
+            const char* message = win ? "You Win!" : "Game Over!";
+            Vector2 msz = MeasureTextEx(titleFont, message, 40.0f, 1.0f);
+            // Calculate the Y position to be vertically centered within the overlay
+            float messageY = overlayRect.y + (overlayRect.height / 2.0f) - (msz.y / 2.0f);
+            DrawTextCentered(titleFont, message, messageY, 40.0f, 1.0f, WHITE);
+
+            // Use the DrawTextCentered helper for the restart hint as well
+            // const char* restartHint = "Press ENTER to restart";
+            // DrawTextCentered(font, restartHint, (float)GetScreenHeight() / 2 + 50.0f, 20.0f, 1.0f, WHITE);
         }
     }
 
@@ -321,7 +333,7 @@ public:
 };
 
 int main() {
-    InitWindow(WINDOW_SIZE, WINDOW_SIZE + 100, "Tiny Flood");
+    InitWindow(WINDOW_SIZE, WINDOW_SIZE + 150, "Tiny Flood");
 
     // Load and set window icon
     Image icon = LoadImage("assets/icon.png");  // Use PNG instead of ICO for better compatibility
