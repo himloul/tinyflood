@@ -10,14 +10,18 @@ const int PADDING = 50;
 const int MAX_MOVES = 15;
 const int WINDOW_SIZE = BOARD_SIZE * CELL_SIZE + PADDING * 2;
 
-// Game colors
-const Color GAME_COLORS[] = {
-    {69, 130, 181, 255},   // Steel Blue
-    {217, 94, 94, 255},    // Indian Red
-    {117, 189, 166, 255},  // Medium Aquamarine
-    {242, 176, 87, 255}    // Sandy Brown
+// Sprite filenames (user-provided)
+const char* SPRITE_FILENAMES[] = {
+    "assets/sprites/b.png",
+    "assets/sprites/g.png",
+    "assets/sprites/y.png",
+    "assets/sprites/r.png"
 };
 const int NUM_COLORS = 4;
+
+// UI colors (kept for text / accents)
+const Color UI_TEXT = BLACK;
+const Color UI_ACCENT = DARKGRAY;
 
 enum GameState { MENU, PLAYING, INSTRUCTIONS };
 
@@ -32,10 +36,13 @@ private:
     Font titleFont;
     std::mt19937 rng;
 
-    // Keyboard navigation variables
-    int selectedMenuItem = 0;  // For menu navigation
-    int selectedColorIndex = 0;  // For color selection in game
-    bool onRestartButton = false;  // Whether restart button is selected
+    // Sprite textures for each "color"
+    Texture2D sprites[NUM_COLORS];
+
+    // Keyboard/navigation
+    int selectedMenuItem = 0;
+    int selectedColorIndex = 0;
+    bool onRestartButton = false;
 
     void initBoard() {
         board.assign(BOARD_SIZE, std::vector<int>(BOARD_SIZE));
@@ -87,16 +94,31 @@ private:
 public:
     FloodGame() : rng(std::random_device{}()) {
         initBoard();
+        // initialize sprite textures to zero
+        for (int i = 0; i < NUM_COLORS; ++i) {
+            sprites[i].id = 0;
+        }
     }
 
     void LoadResources() {
-        // Prefer LoadFontEx if you want to set glyph size, but LoadFont works for most cases
+        // Load font (with fallback)
         font = LoadFont("assets/fonts/monogram.ttf");
         if (font.texture.id == 0) {
-            // Fallback to default font
             font = GetFontDefault();
         }
-        titleFont = font; // Using same font for simplicity
+        titleFont = font;
+
+        // Load sprite textures for each color; if load fails, create a 1x1 placeholder
+        for (int i = 0; i < NUM_COLORS; ++i) {
+            Texture2D tex = LoadTexture(SPRITE_FILENAMES[i]);
+            if (tex.id == 0) {
+                // Fallback: 1x1 white image so the app still runs
+                Image img = GenImageColor(1, 1, WHITE);
+                tex = LoadTextureFromImage(img);
+                UnloadImage(img);
+            }
+            sprites[i] = tex;
+        }
     }
 
     void Update() {
@@ -221,44 +243,42 @@ public:
 
     void DrawMenu() {
         // Title (centered)
-        DrawTextCentered(titleFont, "TINY FLOOD", 100.0f, 60.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextCentered(titleFont, "TINY FLOOD", 100.0f, 60.0f, 1.0f, UI_ACCENT);
 
-        // Draw menu items with selection highlight
-        Color startColor = (selectedMenuItem == 0) ? GAME_COLORS[1] : GAME_COLORS[0];
-        Color instructionsColor = (selectedMenuItem == 1) ? GAME_COLORS[1] : GAME_COLORS[0];
+        // Draw menu items with selection highlight (use UI colors)
+        Color startColor = (selectedMenuItem == 0) ? UI_ACCENT : UI_TEXT;
+        Color instructionsColor = (selectedMenuItem == 1) ? UI_ACCENT : UI_TEXT;
 
         DrawTextEx(font, "Start", { (float)GetScreenWidth()/2 - 80, 300.0f }, 30.0f, 1.0f, startColor);
         DrawTextEx(font, "Instructions", { (float)GetScreenWidth()/2 - 80, 350.0f }, 30.0f, 1.0f, instructionsColor);
 
         // Draw selection indicator
         int indicatorY = selectedMenuItem == 0 ? 300 : 350;
-        DrawTextEx(font, ">", { (float)GetScreenWidth()/2 - 100, (float)indicatorY }, 30.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextEx(font, ">", { (float)GetScreenWidth()/2 - 100, (float)indicatorY }, 30.0f, 1.0f, UI_ACCENT);
 
         // Draw controls hint
         DrawTextCentered(font, "UP/DOWN to navigate", 450.0f, 20.0f, 1.0f, GRAY);
         DrawTextCentered(font, "ENTER to select", 480.0f, 20.0f, 1.0f, GRAY);
-
     }
 
     void DrawInstructions() {
-        DrawTextEx(font, "Instructions", { (float)PADDING, 100.0f }, 40.0f, 1.0f, GAME_COLORS[1]);
-        DrawTextEx(font, "LEFT/RIGHT: Select colors", { (float)PADDING, 150.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "ENTER: Flood with selected color", { (float)PADDING, 180.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "UP/DOWN: Switch colors and restart", { (float)PADDING, 210.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "ESC: to return to menu", { (float)PADDING, 240.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, "Instructions", { (float)PADDING, 100.0f }, 40.0f, 1.0f, UI_ACCENT);
+        DrawTextEx(font, "LEFT/RIGHT: Select colors", { (float)PADDING, 150.0f }, 22.0f, 1.0f, UI_TEXT);
+        DrawTextEx(font, "ENTER: Flood with selected color", { (float)PADDING, 180.0f }, 22.0f, 1.0f, UI_TEXT);
+        DrawTextEx(font, "UP/DOWN: Switch colors and restart", { (float)PADDING, 210.0f }, 22.0f, 1.0f, UI_TEXT);
+        DrawTextEx(font, "ESC: to return to menu", { (float)PADDING, 240.0f }, 22.0f, 1.0f, UI_TEXT);
 
-        DrawTextEx(font, "---", { (float)PADDING, 270.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "Fill entire board w/ one color", { (float)PADDING, 300.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-        DrawTextEx(font, "in few moves", { (float)PADDING, 330.0f }, 22.0f, 1.0f, GAME_COLORS[0]);
-
+        DrawTextEx(font, "---", { (float)PADDING, 270.0f }, 22.0f, 1.0f, UI_TEXT);
+        DrawTextEx(font, "Fill entire board w/ one color", { (float)PADDING, 300.0f }, 22.0f, 1.0f, UI_TEXT);
+        DrawTextEx(font, "in few moves", { (float)PADDING, 330.0f }, 22.0f, 1.0f, UI_TEXT);
 
         const char* hint = "Press ENTER to return to menu";
         Vector2 hintSz = MeasureTextEx(font, hint, 22.0f, 1.0f);
-        DrawTextEx(font, hint, { (float)GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() - 50.0f }, 22.0f, 1.0f, GAME_COLORS[1]);
+        DrawTextEx(font, hint, { (float)GetScreenWidth() / 2.0f - hintSz.x / 2.0f, (float)GetScreenHeight() - 50.0f }, 22.0f, 1.0f, UI_ACCENT);
     }
 
     void DrawGame() {
-        // Draw board
+        // Draw board using sprites for each cell
         for (int y = 0; y < BOARD_SIZE; y++) {
             for (int x = 0; x < BOARD_SIZE; x++) {
                 Rectangle cell = {
@@ -267,19 +287,29 @@ public:
                     (float)CELL_SIZE,
                     (float)CELL_SIZE
                 };
-                DrawRectangleRec(cell, GAME_COLORS[board[y][x]]);
+
+                Texture2D &tex = sprites[board[y][x]];
+                Rectangle src = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+                Rectangle dest = cell;
+                Vector2 origin = { 0.0f, 0.0f };
+                // Draw the tile sprite scaled to the cell rectangle
+                DrawTexturePro(tex, src, dest, origin, 0.0f, WHITE);
             }
         }
 
         // Draw move counter
         std::string moveText = "Moves: " + std::to_string(moves) + "/" + std::to_string(MAX_MOVES);
-        DrawTextEx(font, moveText.c_str(), { (float)PADDING, (float)(PADDING * 0.2) }, 24.0f, 1.0f, GAME_COLORS[0]);
+        DrawTextEx(font, moveText.c_str(), { (float)PADDING, (float)(PADDING * 0.2) }, 24.0f, 1.0f, UI_TEXT);
 
-        // Draw color buttons with selection highlight
+        // Draw color buttons with sprite images
         int buttonY = PADDING + BOARD_SIZE * CELL_SIZE + 20;
         for (int i = 0; i < NUM_COLORS; i++) {
             Rectangle button = {(float)(PADDING + i * 40), (float)buttonY, 35.0f, 35.0f};
-            DrawRectangleRounded(button, 0.2f, 0, GAME_COLORS[i]);
+            Texture2D &tex = sprites[i];
+            Rectangle src = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+            Rectangle dest = button;
+            Vector2 origin = { 0.0f, 0.0f };
+            DrawTexturePro(tex, src, dest, origin, 0.0f, WHITE);
 
             // Draw selection indicator for selected color
             if (!onRestartButton && i == selectedColorIndex) {
@@ -290,12 +320,12 @@ public:
 
         // Draw restart button with selection highlight
         Rectangle restartBtn = {(float)PADDING, (float)(buttonY + 50), 120.0f, 40.0f};
-        Color restartColor = onRestartButton ? GAME_COLORS[1] : LIGHTGRAY;
+        Color restartColor = onRestartButton ? UI_ACCENT : LIGHTGRAY;
         DrawRectangleRounded(restartBtn, 0.2f, 0, restartColor);
         DrawTextEx(font, "Restart", { PADDING + 25.0f, (float)buttonY + 60.0f }, 20.0f, 1.0f, onRestartButton ? WHITE : BLACK);
 
         if (onRestartButton) {
-            DrawTextEx(font, ">", { (float)PADDING - 20.0f, (float)buttonY + 60.0f }, 20.0f, 1.0f, GAME_COLORS[1]);
+            DrawTextEx(font, ">", { (float)PADDING - 20.0f, (float)buttonY + 60.0f }, 20.0f, 1.0f, UI_ACCENT);
         }
 
         // Draw controls hint
@@ -307,27 +337,24 @@ public:
 
         // Draw win/game over message
         if (win || gameOver) {
-            // Define the semi-transparent background rectangle area
+            // Semi-transparent overlay
             Rectangle overlayRect = { 0, (float)GetScreenHeight() / 2 - 50, (float)GetScreenWidth(), 150 };
             DrawRectangleRec(overlayRect, win ? Color{0, 128, 0, 200} : Color{128, 0, 0, 200});
 
-            // --- MODIFIED SECTION ---
-            // Use the DrawTextCentered helper for the main message
             const char* message = win ? "You Win!" : "Game Over!";
             Vector2 msz = MeasureTextEx(titleFont, message, 40.0f, 1.0f);
-            // Calculate the Y position to be vertically centered within the overlay
             float messageY = overlayRect.y + (overlayRect.height / 2.0f) - (msz.y / 2.0f);
             DrawTextCentered(titleFont, message, messageY, 40.0f, 1.0f, WHITE);
-
-            // Use the DrawTextCentered helper for the restart hint as well
-            // const char* restartHint = "Press ENTER to restart";
-            // DrawTextCentered(font, restartHint, (float)GetScreenHeight() / 2 + 50.0f, 20.0f, 1.0f, WHITE);
         }
     }
 
     void Cleanup() {
         if (font.texture.id != GetFontDefault().texture.id && font.texture.id != 0) {
             UnloadFont(font);
+        }
+        // Unload sprite textures
+        for (int i = 0; i < NUM_COLORS; ++i) {
+            if (sprites[i].id != 0) UnloadTexture(sprites[i]);
         }
     }
 };
