@@ -1,6 +1,15 @@
-# Tiny Flood
+<div style="text-align: center;">
+  <h1>Tiny Flood</h1>
+</div>
 
-A tiny clone of the Flood-It game, written in C++ using Raylib.
+<div style="text-align: center;">
+  <img src="assets/screen.png" alt="Screenshot" height="200px"/>
+</div>
+
+<div style="text-align: center;">
+  A tiny clone of the Flood-It game, written in C++ using Raylib.
+</div>
+
 
 ## Building from Source
 
