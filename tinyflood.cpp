@@ -123,10 +123,11 @@ public:
 
     void Update() {
         if (state == PLAYING && !gameOver && !win) {
-            if (moves >= MAX_MOVES) {
-                gameOver = true;
-            } else if (checkWin()) {
+            // Check win first so the final allowed move that completes the board.
+            if (checkWin()) {
                 win = true;
+            } else if (moves >= MAX_MOVES) {
+                gameOver = true;
             }
         }
 
@@ -139,6 +140,7 @@ public:
             selectedMenuItem = 0;
         }
     }
+
 
     void HandleKeyboardInput() {
         switch (state) {
