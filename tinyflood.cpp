@@ -44,6 +44,11 @@ private:
     int selectedColorIndex = 0;
     bool onRestartButton = false;
 
+    // Audio
+    Sound winSound{};
+    Sound gameOverSound{};
+    Sound powerupSound{};
+
     void initBoard() {
         board.assign(BOARD_SIZE, std::vector<int>(BOARD_SIZE));
         std::uniform_int_distribution<int> dist(0, NUM_COLORS - 1);
@@ -119,15 +124,30 @@ public:
             }
             sprites[i] = tex;
         }
+
+        // Load sounds
+        // Audio device is initialized in main before calling LoadResources().
+        if (IsAudioDeviceReady()) {
+            winSound = LoadSound("assets/audio/win.wav");
+            gameOverSound = LoadSound("assets/audio/hurt.wav");
+            powerupSound = LoadSound("assets/audio/powerup.wav");
+        } else {
+            // Fallback: zero-initialize so PlaySound won't crash
+            winSound = { 0 };
+            gameOverSound = { 0 };
+            powerupSound = { 0 };
+        }
     }
 
     void Update() {
         if (state == PLAYING && !gameOver && !win) {
-            // Check win first so the final allowed move that completes the board.
+            // Check win first so final allowed move can win
             if (checkWin()) {
                 win = true;
+                if (IsAudioDeviceReady()) PlaySound(winSound);
             } else if (moves >= MAX_MOVES) {
                 gameOver = true;
+                if (IsAudioDeviceReady()) PlaySound(gameOverSound);
             }
         }
 
@@ -140,6 +160,7 @@ public:
             selectedMenuItem = 0;
         }
     }
+
 
 
     void HandleKeyboardInput() {
@@ -167,6 +188,8 @@ public:
         // Select menu item with Enter
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedMenuItem == 0) {
+                // Play a small 'powerup' sound when starting the game
+                if (IsAudioDeviceReady()) PlaySound(powerupSound);
                 state = PLAYING;
                 selectedColorIndex = 0;
                 onRestartButton = false;
@@ -358,11 +381,20 @@ public:
         for (int i = 0; i < NUM_COLORS; ++i) {
             if (sprites[i].id != 0) UnloadTexture(sprites[i]);
         }
+        // Unload sounds (if loaded)
+        if (IsAudioDeviceReady()) {
+            if (IsSoundValid(winSound)) UnloadSound(winSound);
+            if (IsSoundValid(gameOverSound)) UnloadSound(gameOverSound);
+            if (IsSoundValid(powerupSound)) UnloadSound(powerupSound);
+        }
     }
 };
 
 int main() {
     InitWindow(WINDOW_SIZE, WINDOW_SIZE + 150, "Tiny Flood");
+
+    // Initialize audio
+    InitAudioDevice();
 
     // Load and set window icon
     Image icon = LoadImage("assets/icon.png");  // Use PNG instead of ICO for better compatibility
@@ -379,6 +411,10 @@ int main() {
     }
 
     game.Cleanup();
+
+    // Close audio device
+    if (IsAudioDeviceReady()) CloseAudioDevice();
+
     CloseWindow();
     return 0;
 }
