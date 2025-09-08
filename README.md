@@ -1,14 +1,14 @@
-<div style="text-align: center;">
+<p align="center">
   <h1>Tiny Flood</h1>
-</div>
+</p>
 
-<div style="text-align: center;">
+<p align="center">
   <img src="assets/screen.png" alt="Screenshot" height="200px"/>
-</div>
+</p>
 
-<div style="text-align: center;">
+<p align="center">
   A tiny clone of the Flood-It game, written in C++ using Raylib.
-</div>
+</p>
 
 
 ## Building from Source
